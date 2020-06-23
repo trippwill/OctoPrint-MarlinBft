@@ -1,0 +1,57 @@
+<form class="form-horizontal">
+    <div class="control-group">
+        <label class="control-label">Wait after connect (ms)</label>
+        <div class="controls">
+            <input type="text" class="input-block-level" data-bind="value: settings.plugins.marlinbft.wait_after_connect_ms" />
+            <div class="help-block">
+                Some boards reset after getting the command to start binary transfer mode. A value of 3000 (3 seconds) is normal
+                for when this wait is required.
+            </div>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Wait before reconnect (ms)</label>
+        <div class="controls">
+            <input type="text" class="input-block-level" data-bind="value: settings.plugins.marlinbft.wait_before_reconnect_ms" />
+            <div class="help-block">
+                How long to wait after the file transfer is complete before OctoPrint tries to reconnect to the printer. If resetting
+                the board (using M997, for example) a quite high value might be needed, such as 12000 (12 seconds).
+            </div>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Communication timeout (ms)</label>
+        <div class="controls">
+            <input type="text" class="input-block-level" data-bind="value: settings.plugins.marlinbft.timeout_ms" />
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Accept file extensions</label>
+        <div class="controls">
+            <input type="text" class="input-block-level" data-bind="value: settings.plugins.marlinbft.accept_extensions" />
+            <div class="help-block">
+                A comma-delimited list of extensions to accept for binary upload to the SD card.
+            </div>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Upload folder</label>
+        <div class="controls">
+            <input type="text" class="input-block-level" data-bind="value: settings.plugins.marlinbft.upload_folder" />
+            <div class="help-block">
+                The file to be transferred is first stored on the OctoPrint server. This is the path where the files
+                are stored.
+            </div>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Delete upload</label>
+        <div class="controls">
+            <select class="input-block-level" data-bind="options: ['Always', 'Never', 'OnlyOnSuccess', 'OnlyOnFail'], value: settings.plugins.marlinbft.delete_upload"></select>
+            <div class="help-block" >
+                Whether to delete the file from the server after the transfer.
+            </div>
+        </div>
+    </div>
+
+</form>
