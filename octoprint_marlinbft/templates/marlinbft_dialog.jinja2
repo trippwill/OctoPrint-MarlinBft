@@ -8,61 +8,62 @@
     <div class="modal-body" style="overflow: auto; max-height: 805px;">
 
 <!--##--CONTENT--##-->
-<div id="bft-options" class="row-fluid">
-        <div class="row-fluid upload-buttons">
-            <button class="btn fileinput-button span6" data-bind="css: {
-                    'btn-primary':  settings.reconnect()
-                    }, click: toggleReconnect"
-                    data-helptext="Reconnect OctoPrint to the printer after the transfer completes.">
-                <i class="fa fa-sync"></i>
-                <span>Reconnect after transfer</span>
-            </button>
+        <div id="bft-options" class="row-fluid">
+            <div class="row-fluid upload-buttons">
+                <button class="btn fileinput-button span6" data-bind="css: {
+                        'btn-primary':  settings.reconnect()
+                        }, click: toggleReconnect"
+                        data-helptext="Reconnect OctoPrint to the printer after the transfer completes.">
+                    <i class="fa fa-sync"></i>
+                    <span>Reconnect after transfer</span>
+                </button>
 
-            <button class="btn fileinput-button span6" data-bind="css: {
-                    'btn-primary': settings.post_transfer_gcode_enable()
-                    }, click: togglePostTransferGcode",
-                    data-helptext="Send the specified gcode after the file transfer is complete.">
-                <i class="fa fa-terminal"></i>
-                <span>Send gcode</span>
-            </button>
-            
+                <button class="btn fileinput-button span6" data-bind="css: {
+                        'btn-primary': settings.post_transfer_gcode_enable()
+                        }, click: togglePostTransferGcode",
+                        data-helptext="Send the specified gcode after the file transfer is complete.">
+                    <i class="fa fa-terminal"></i>
+                    <span>Send gcode</span>
+                </button>  
+            </div>
+
+            <div class="row-fluid upload-buttons" style="margin-top:6px">
+                <button class="btn btn-primary fileinput-button span6"
+                    disabled
+                    data-bind="enable: canSend"
+                    data-helptext="Select file to transfer. Transfer begins immediately.">
+                    <i class="fa fa-upload"></i>
+                    <span>Upload to SD</span>
+                    <input type="file" name="file" id="upload-binary" class="fileinput-button" disabled
+                        data-bind="enable: canSend,
+                            style: {
+                                cursor: canSend() ? 'pointer' : 'not-allowed'
+                            }" />
+                </button> 
+
+                <input type="text" class="pull-right span6" id="bft-post-gcode" data-bind="value: postGcode, enable: settings.post_transfer_gcode_enable"
+                        data-helptext="A comma-delimited list of gcode to send after the file transfer is complete." />
+            </div>
         </div>
 
-        <div class="row-fluid upload-buttons">
-
-            <button class="btn btn-primary fileinput-button span6" data-bind="enable: connection.isOperational"
-                data-helptext="Select file to transfer. Tranfer begins immediately.">
-                <i class="fa fa-upload"></i>
-                <span>Upload to SD</span>
-                <input type="file" name="file" id="upload-binary" class="fileinput-button" data-bind="enable: connection.isOperational, style: {
-                    cursor: connection.isOperational() ? 'pointer' : 'not-allowed'
-                }" />
-            </button> 
-
-            <input type="text" class="pull-right span6" id="bft-post-gcode" data-bind="value: postGcode, enable: settings.post_transfer_gcode_enable"
-                   data-helptext="A comma-delimited list of gcode to send after the file transfer is complete." />
-
+        <div class="row-fluid">
+            <div class="help-block" data-bind="text: activeHelpText"></div>
         </div>
-</div>
 
-<div class="row-fluid">
-    <div class="help-block" data-bind="text: activeHelpText"></div>
-</div>
-
-<div class="row-fluid terminal" data-bind="visible: isSending">
-    <pre id="bft-terminal" 
-         class="pre-scrollable pre-output" 
-         data-bind="template: { foreach: output, as: 'line' }" 
-         style="height: 90px; margin-top: 10px; margin-bottom: 0px;"><span data-bind="text: line" style="display: block; white-space: nowrap"></span></pre>
-</div>
+        <div class="row-fluid terminal" data-bind="visible: isSending">
+            <pre id="bft-terminal" 
+                class="pre-scrollable pre-output" 
+                data-bind="template: { foreach: output, as: 'line' }" 
+                style="height: 110px; margin-bottom: 0px;"><span data-bind="text: line" style="display: block; white-space: nowrap"></span></pre>
+        </div>
 <!--!!--CONTENT--!!-->
 
     </div>
     <div class="modal-footer">
-        <button class="btn aboutlink pull-left">
+        {# <button class="btn aboutlink pull-left">
             <i class="fa fa-info-circle"></i>
             About Marlin BFT
-        </button>
+        </button> #}
         <button class="btn" aria-hidden="true" data-dismiss="modal">
             Close
         </button>

@@ -33,7 +33,7 @@ plugin_url = "https://github.com/charleswillis3/OctoPrint-MarlinBft"
 plugin_license = "MIT"
 
 # Any additional requirements besides OctoPrint should be listed here
-plugin_requires = ["marlin-binary-protocol>=0.0.2"]
+plugin_requires = ["marlin-binary-protocol>=0.0.4"]
 
 ### --------------------------------------------------------------------------------------------------------------------
 ### More advanced options that you usually shouldn't have to touch follow after this point

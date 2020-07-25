@@ -18,59 +18,37 @@ $(function() {
         self.output           = ko.observableArray();
         self.activeHelpText   = ko.observable(undefined);
         self.isSending        = ko.observable(undefined);
-        self.selectedPort     = ko.observable(undefined);
-        self.selectedBaudrate = ko.observable(undefined);
 
         self.postGcode        = ko.pureComputed({
             read: function() {
-                var self = this;
                 return self.settings.post_gcode().join(";");
             },
 
             write: function(val) {
-                var self = this;
                 self.settings.post_gcode(val.split(";"));
                 self.settings_vm.saveData();
             },
-
-            owner: self
         });
+
+        self.canSend = ko.pureComputed(() => self.connection.isOperational() && self.settings.has_capability());
 
         self.uploadButton    = $("#upload-binary");
         self.marlinbftDialog = $("#marlinbft-dialog");
-        self.octoTerminal    = $("#terminal-output");
         self.bftTerminal     = $("#bft-terminal");
-
-        self.availableDelete   = [
-            "Never",
-            "OnlyOnSuccess",
-            "OnlyOnFail",
-            "Always"
-        ]
+        
+        self.octoTerminal    = $("#terminal-output");
 
         self.onBeforeBinding = function() {
             self.settings = self.settings_vm.settings.plugins.marlinbft;
 
             console.log("BeforeBinding: MarlinBFT");
-            self.output.removeAll();
+            self._updateTerminal(false);
 
             var helpTextElements = $("[data-helptext]");
             var eventBinding = "event: { mouseover: setHelpText.bind($data, $element), mouseout: clearHelpText }";
             helpTextElements.each(function() {
                 var currentBinding = $(this).attr("data-bind");
                 $(this).attr("data-bind", [eventBinding, currentBinding].join(", "));
-            });
-        };
-
-        self._setFileUpload = function() {
-            var url = API_BASEURL + "files/local";
-
-            self.uploadButton.fileupload({
-                url: url,
-                dataType: "json",
-                add:  self._handleUploadAdd,
-                done: self._handleUploadDone,
-                fail: self._handleUploadFail,
             });
         }
 
@@ -84,18 +62,32 @@ $(function() {
             self._setFileUpload();
             self.clearHelpText();
             self.isSending(false);
-        };
+        }
+
+        self._setFileUpload = function() {
+            var url = API_BASEURL + "files/local";
+
+            self.uploadButton.fileupload({
+                url: url,
+                dataType: "json",
+                add:  self._handleUploadAdd,
+                done: self._handleUploadDone,
+                fail: self._handleUploadFail,
+                progress: self._handleUploadProgress
+            });
+        }
 
         self._handleUploadAdd = function(e, data) {
+            self._updateTerminal(false);
             self.isSending(true);
             data.formData = { path: self.settings.upload_folder() };
             
             console.log("Upload phase: add file to queue");
             console.log(data);
-            self.output.push("Starting upload to OctoPrint server");
+            self._updateTerminal("Starting upload to OctoPrint server");
 
             if (self.connection.isPrinting()) {
-                self.output.push("Confirm disconnect");
+                self._updateTerminal("Confirm disconnect");
                 showSelectionDialog({
                     title: "Confirm disconnect",
                     message: "<p><strong>You are about to disconnect from the printer"
@@ -127,89 +119,115 @@ $(function() {
             } else {
                 self._startUpload(data);
             }
-        };
+        }
 
         self._startUpload = function(data) {
             console.log("Upload phase: start upload to server");
             OctoPrint.simpleApiCommand(pluginid, "change_phase", {"curr": "Upload"});
             data.submit();
-        };
+        }
 
         self._handleUploadDone = function(e, data) {
             console.log("Upload phase: done");
             console.log(data);
-            self.output.push("Upload to server done");
-            self.output.push("Starting transfer to Marlin");
+            self._updateTerminal("Upload to server done");
+            self._updateTerminal("Starting transfer to Marlin");
 
-            OctoPrint.simpleApiCommand(pluginid, "start_upload", {
-                "local_path": data.result.files.local.path
-            });
-        };
+            OctoPrint.connection.getSettings()
+                .then(settings => {
+                    self.currentPrinter = settings.current;
+                    OctoPrint.connection.disconnect().then(_ => {
+                        params = {
+                            "local_path": data.result.files.local.path,
+                            "port": self.currentPrinter.port,
+                            "baudrate": self.currentPrinter.baudrate,
+                            "handler_type": "dialog"
+                        };
+
+                        console.log("Start transfer");
+                        console.log(params);
+
+                        OctoPrint.simpleApiCommand(pluginid, "start_transfer", params)
+                            .always(resp => {
+                                console.log(resp);
+                                self._updateTerminal(resp.statusText)
+                            });
+                    });
+                });
+        }
 
         self._handleUploadFail = function(e, data) {
             console.log("Upload phase: fail");
             console.log(data);
-            self.output.push("Upload to server failed");
-        };
+            self._updateTerminal("Upload to server failed");
+            OctoPrint.simpleApiCommand(pluginid, "change_phase", {"curr": "Inactive"});
+        }
 
-        self.onUserPermissionsChanged = 
-        self.onUserLoggedIn = 
-        self.onUserLoggedOut = 
-        self.onEventSettingsUpdated = 
-        self.onEventConnected = 
-        self.onEventDisconnected = function() {
-            self.refreshConnection();
-        };
+        self._handleUploadProgress = function (e, data) {
+            self._updateTerminal("UPLOAD PROGRESS: " + parseInt(data.loaded / data.total * 100, 10));
+        }
 
         self.onDataUpdaterPluginMessage = function(plugin, message) {
             if (plugin == pluginid) {
-                self.output.push(message);
-                self.bftTerminal.scrollTop(self.bftTerminal[0].scrollHeight);
+                self._updateTerminal(message);
             }
-        };
+        }
 
-        self.onEventplugin_marlinbft_transfer_started = function(payload) {
-            console.log("Transfer phase: start");
-        };
-
-        self.onEventplugin_marlinbft_transfer_complete = function(payload) {
-            console.log("Transfer phase: complete");
-        };
-
-        self.onEventplugin_marlinbft_transfer_error = function(payload) {
-            console.log("Transfer phase: error");
-        };
+        self._updateTerminal = function(msg) {
+            if (msg) {
+                self.output.push(msg);
+                self.bftTerminal.scrollTop(self.bftTerminal[0].scrollHeight);
+            } else {
+                self.output.removeAll();
+            }
+        }
 
         self.onEventplugin_marlinbft_phase_changed = function(payload) {
             console.log(payload.prev + " ==> " + payload.curr);
+            switch (payload.curr) {
+                case "CompleteOK":
+                    if (self.settings.reconnect()) {
+                        var to = self.settings.wait_before_reconnect_ms();
+                        self._updateTerminal("Printer will reconnect in " + to/1000 + "s...");
+                        window.setTimeout(
+                            self._reconnectPrinter,
+                            to
+                        );
+                    }
+                    if (["OnlyOnSuccess", "Always"].includes(self.settings.delete_upload())) {
+                        self._cleanupFile(payload.msg);
+                    }
+                    break;
+                case "CompleteFail":
+                    if (["OnlyOnFail", "Always"].includes(self.settings.delete_upload())) {
+                        self._cleanupFile(payload.msg);
+                    }
+                    break;
+            }
+        }
+
+        self._reconnectPrinter = function() {
+            OctoPrint.connection.connect(self.currentPrinter);
+            self.close();
+        }
+
+        self._cleanupFile = function(path) {
+            console.log("deleting file: " + path);
+            OctoPrint.files.delete("local", path);
         }
 
         self.show = function() {
-            self.refreshConnection();
+            self.clearHelpText();
             self.marlinbftDialog.modal("show");
-        };
+        }
 
         self.close = function() {
             self.marlinbftDialog.modal("hide");
-        };
+        }
 
         self.settingsShow = function() {
             self.settings_vm.show("settings_plugin_marlinbft");
-        };
-
-        self.refreshConnection = function() {
-            if(!self.loginState.hasPermission(self.access.permissions.CONNECTION)) {
-                return;
-            }
-
-            OctoPrint.connection.getSettings()
-                .done(self.fromGetSettings);
-        };
-
-        self.fromGetSettings = function(resp) {
-            self.currentOctoPort = resp.current.port;
-            self.currentOctoBaud = resp.current.baudrates;
-        };
+        }
 
         self.togglePostTransferGcode = function() {
             self.settings.post_transfer_gcode_enable(
@@ -217,7 +235,7 @@ $(function() {
             );
 
             self.settings_vm.saveData();
-        };
+        }
 
         self.toggleReconnect = function() {
             self.settings.reconnect(
@@ -232,7 +250,14 @@ $(function() {
         }
 
         self.clearHelpText = function() {
-            var default_helptext = "Set options, then select 'Upload to SD' to begin. Printer must be connected to select file.";
+            var default_helptext = "Set options, then select 'Upload to SD' to begin.";
+
+            if (!self.connection.isOperational()) {
+                default_helptext = "Printer must be connected to enable file transfer.";
+            } else if (!self.settings.has_capability()) {
+                default_helptext = "Connected printer must have (and report) the BINARY_FILE_TRANSFER capability.";
+            }
+
             self.activeHelpText(default_helptext);
         }
     }
