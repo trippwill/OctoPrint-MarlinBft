@@ -13,7 +13,7 @@ $(function() {
         self.loginState  = parameters[1];
         self.connection  = parameters[2];
         self.access      = parameters[3];
-        self.settings    = ko.observable(undefined);
+        self.settings    = undefined;
 
         self.output           = ko.observableArray();
         self.activeHelpText   = ko.observable(undefined);
@@ -21,14 +21,16 @@ $(function() {
 
         self.postGcode        = ko.pureComputed({
             read: function() {
-                return self.settings.post_gcode().join(";");
+                return self.settings.post_transfer_gcode().join(";");
             },
 
             write: function(val) {
-                self.settings.post_gcode(val.split(";"));
+                self.settings.post_transfer_gcode(val.split(";"));
                 self.settings_vm.saveData();
             },
         });
+
+        self.uploadAccept = ko.pureComputed(() => self.settings.accept_extensions().split(",").map(x => "." + x).join(","));
 
         self.canSend = ko.pureComputed(() => self.connection.isOperational() && self.settings.has_capability());
 

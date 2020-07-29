@@ -36,9 +36,8 @@
                     <span>Upload to SD</span>
                     <input type="file" name="file" id="upload-binary" class="fileinput-button" disabled
                         data-bind="enable: canSend,
-                            style: {
-                                cursor: canSend() ? 'pointer' : 'not-allowed'
-                            }" />
+                                   style: { cursor: canSend() ? 'pointer' : 'not-allowed'},
+                                   attr: { accept: uploadAccept }" />
                 </button> 
 
                 <input type="text" class="pull-right span6" id="bft-post-gcode" data-bind="value: postGcode, enable: settings.post_transfer_gcode_enable"
