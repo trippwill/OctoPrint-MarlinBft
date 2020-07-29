@@ -17,7 +17,6 @@ archive: https://github.com/charleswillis3/OctoPrint-MarlinBft/archive/master.zi
 # library versions not yet published on PyPi. SHOULD ONLY BE USED IF THERE IS NO OTHER OPTION!
 follow_dependency_links: false
 
-# TODO
 tags:
 - marlin
 - file
@@ -25,18 +24,15 @@ tags:
 - firmware.bin
 - binary
 
-# TODO
-# screenshots:
-# - url: url of a screenshot, /assets/img/...
-#   alt: alt-text of a screenshot
-#   caption: caption of a screenshot
-# - url: url of another screenshot, /assets/img/...
-#   alt: alt-text of another screenshot
-#   caption: caption of another screenshot
-- ...
+screenshots:
+- url: /assets/img/plugins/marlinbft/marlinbft-feature.png
+  alt: marlin binary file transfer dialog
+  caption: The transfer dialog
+- url: /assets/img/plugins/marlinbft/marlinbft-navbar.png
+  alt: marlin binary file transfer navbar button
+  caption: THe navbar button
 
-# TODO
-<!-- featuredimage: url of a featured image for your plugin, /assets/img/... -->
+featuredimage: /assets/img/plugins/marlinbft/marlinbft-feature.png
 
 compatibility:
 
@@ -49,7 +45,7 @@ compatibility:
   - macos
   - freebsd
     
-  python: ">=2.7,<3"
+  python: ">=2.7,<4"
 
 ---
 This will transfer a file to a printer using Marlin firmware's experimental binary file transfer protocol.
