@@ -14,10 +14,10 @@ class _Names:
     _phase_changed     = "phase_changed"
 
 class BftEvents:
-    TransferStarted  = lambda: getattr(OEvents, _resolve_event_name(_Names._transfer_started))
-    TransferComplete = lambda: getattr(OEvents, _resolve_event_name(_Names._transfer_complete))
-    TransferError    = lambda: getattr(OEvents, _resolve_event_name(_Names._transfer_error))
-    PhaseChanged     = lambda: getattr(OEvents, _resolve_event_name(_Names._phase_changed))
+    TransferStarted  = staticmethod(lambda: getattr(OEvents, _resolve_event_name(_Names._transfer_started)))
+    TransferComplete = staticmethod(lambda: getattr(OEvents, _resolve_event_name(_Names._transfer_complete)))
+    TransferError    = staticmethod(lambda: getattr(OEvents, _resolve_event_name(_Names._transfer_error)))
+    PhaseChanged     = staticmethod(lambda: getattr(OEvents, _resolve_event_name(_Names._phase_changed)))
 
     Registration = [_Names._transfer_started, _Names._transfer_complete, _Names._transfer_error, _Names._phase_changed]
 
@@ -57,11 +57,11 @@ class SettingsResolver(object):
 
         try:
             val = _get(self.override_settings, path)
-            self.logger.info("[SettingsResolver]: value from override_settings %s:" % path)
-            self.logger.info(val)
+            self.logger.debug("[SettingsResolver]: value from override_settings %s:" % path)
+            self.logger.debug(val)
             return val
         except KeyError:
-            self.logger.info("[SettingsResolver]: key not found in override_settings %s" % path)
+            self.logger.debug("[SettingsResolver]: key not found in override_settings %s" % path)
             return self.base_settings.get(path)
 
     def get_int(self, path):
@@ -127,22 +127,22 @@ class DialogHandler(ApiHandler):
         self.logger = logger
         self.event_bus = event_bus
         self.settings = settings
-        super().__init__()
+        super(ApiHandler,self).__init__()
 
     def start(self, local_name, remote_name):
         self.logger.info("DIALOG START %s %s" % (local_name, remote_name))
         self.fire_changed(Phase.Connect)
-        super().start(local_name, remote_name)
+        super(ApiHandler,self).start(local_name, remote_name)
 
     def success(self, local_name, remote_name, elapsed):
         self.logger.info("DIALOG_SUCCESS %s %s %s" % (local_name, remote_name, elapsed))
         self.fire_changed(Phase.PostTransfer)
-        super().success(local_name, remote_name, elapsed)
+        super(ApiHandler,self).success(local_name, remote_name, elapsed)
 
     def failure(self, local_name, remote_name, elapsed, msg):
         self.logger.info("DIALOG_FAILURE %s %s %s" % (local_name, remote_name, elapsed))
         self.fire_changed(Phase.PostTransfer)
-        super().failure(local_name, remote_name, elapsed, msg)
+        super(ApiHandler,self).failure(local_name, remote_name, elapsed, msg)
 
     def fire_changed(self, current, msg=None):
         self.event_bus.fire(BftEvents.PhaseChanged(), dict(
@@ -150,7 +150,7 @@ class DialogHandler(ApiHandler):
             curr = current,
             msg  = msg
         ))
-        super().fire_changed(current, msg)
+        super(ApiHandler,self).fire_changed(current, msg)
 
 import copy
 

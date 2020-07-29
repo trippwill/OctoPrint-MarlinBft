@@ -13,7 +13,7 @@ $(function() {
         self.loginState  = parameters[1];
         self.connection  = parameters[2];
         self.access      = parameters[3];
-        self.settings    = undefined;
+        self.settings    = ko.observable(undefined);
 
         self.output           = ko.observableArray();
         self.activeHelpText   = ko.observable(undefined);
@@ -39,9 +39,8 @@ $(function() {
         self.octoTerminal    = $("#terminal-output");
 
         self.onBeforeBinding = function() {
-            self.settings = self.settings_vm.settings.plugins.marlinbft;
-
             console.log("BeforeBinding: MarlinBFT");
+            self.settings = self.settings_vm.settings.plugins.marlinbft;
             self._updateTerminal(false);
 
             var helpTextElements = $("[data-helptext]");

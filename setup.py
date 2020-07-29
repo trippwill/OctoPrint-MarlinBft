@@ -14,7 +14,7 @@ plugin_package = "octoprint_marlinbft"
 plugin_name = "OctoPrint-MarlinBft"
 
 # The plugin's version. Can be overwritten within OctoPrint's internal data via __plugin_version__ in the plugin module
-plugin_version = "0.1.1"
+plugin_version = "0.1.2"
 
 # The plugin's description. Can be overwritten within OctoPrint's internal data via __plugin_description__ in the plugin
 # module
@@ -33,7 +33,7 @@ plugin_url = "https://github.com/charleswillis3/OctoPrint-MarlinBft"
 plugin_license = "MIT"
 
 # Any additional requirements besides OctoPrint should be listed here
-plugin_requires = ["marlin-binary-protocol>=0.0.5"]
+plugin_requires = ["marlin-binary-protocol>=0.0.6", "backports.time-perf-counter>=0.0.4"]
 
 ### --------------------------------------------------------------------------------------------------------------------
 ### More advanced options that you usually shouldn't have to touch follow after this point

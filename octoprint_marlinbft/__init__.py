@@ -182,7 +182,7 @@ class MarlinbftPlugin(octoprint.plugin.StartupPlugin,
         if accept:
             return dict(
                 machinecode=dict(
-                    marlinbin=accept.split(sep=",")
+                    marlinbin=accept.split(",")
                 ))
 
     ##~~ softwareupdate hook
